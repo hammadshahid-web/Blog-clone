@@ -1,10 +1,11 @@
-// app/layout.tsx
+
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import Navbar from '@/components/layouts/Navbar';
 import { Footer } from '@/components/layouts/Footer';
-import { AppProviders } from '@/providers'; // 
+import { AppProviders } from '@/providers'; 
+import QueryProvider from '@/providers/query-provider';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -25,7 +26,9 @@ export default function RootLayout({
         <AppProviders>
           <Navbar />
           <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <QueryProvider>
             {children}
+            </QueryProvider>
           </main>
           <Footer />
         </AppProviders>

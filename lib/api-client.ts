@@ -1,21 +1,45 @@
 import axios from 'axios';
-
-// Backend API URL (Apne backend ya mock API ka base URL yahan rakhein)
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://jsonplaceholder.typicode.com';
+import { useAuthStore } from '@/stores/use-auth-store';
 
 export const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  timeout: 10000, // 10 seconds
+  baseURL: '/api',
+  headers: { 'Content-Type': 'application/json' },
 });
 
-// Interceptor: Har request ke sath token bhejne ke liye (Auth setup ke liye)
-apiClient.interceptors.request.use(
-  (config) => {
-    // Client-side par cookie ya token check karke add kar sakte hain
-    return config;
-  },
-  (error) => Promise.reject(error)
+// 1. Request Interceptor: Attach Bearer Token
+apiClient.interceptors.request.use((config) => {
+  const accessToken = useAuthStore.getState().accessToken;
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
+  }
+  return config;
+});
+
+// 2. Response Interceptor: Auto-Refresh on 401
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        // Attempt Silent Token Renewal
+        const { data } = await axios.post('/api/auth/refresh');
+        
+        useAuthStore.getState().setAuth(data.user, data.accessToken);
+        originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
+
+        return apiClient(originalRequest);
+      } catch (refreshError) {
+        // Clear Store on Failure
+        useAuthStore.getState().clearAuth();
+        window.location.href = '/login';
+        return Promise.reject(refreshError);
+      }
+    }
+
+    return Promise.reject(error);
+  }
 );

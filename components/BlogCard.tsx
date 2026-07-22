@@ -1,62 +1,88 @@
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
-import { Calendar, Clock, ArrowUpRight } from 'lucide-react';
+import { Calendar, Clock, ArrowUpRight, Bookmark } from 'lucide-react';
+import { useWishlistStore } from '@/stores/use-wishlist-store';
+import { useEffect, useState } from 'react';
 
 export interface Post {
-    slug: string;
-    title: string;
-    excerpt: string;
-    category: string;
-    date: string;
-    readTime: string;
-    image: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  category: string;
+  date: string;
+  readTime: string;
+  image: string;
 }
 
 export default function BlogCard({ post }: { post: Post }) {
-    return (
-        <article className="group flex flex-col bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:border-blue-500/50 dark:hover:border-blue-500/50 transition-all duration-300">
+  const { wishlistSlugs, toggleWishlist } = useWishlistStore();
+  const [mounted, setMounted] = useState(false);
 
-            {/* Optimized Image Cover */}
-            <div className="relative h-48 w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
-                <Image
-                    src={post.image}
-                    alt={post.title}
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" // 👈 Add this line!
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <span className="absolute top-3 left-3 bg-blue-600/90 text-white text-xs font-semibold px-2.5 py-1 rounded-full backdrop-blur-md">
-                    {post.category}
-                </span>
-            </div>
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-            {/* Content */}
-            <div className="flex-1 p-6 flex flex-col justify-between">
-                <div>
-                    <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400 mb-3">
-                        <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> {post.date}</span>
-                        <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {post.readTime}</span>
-                    </div>
+  const isBookmarked = mounted && wishlistSlugs.includes(post.slug);
 
-                    <h3 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 mb-2">
-                        <Link href={`/blog/${post.slug}`}>
-                            {post.title}
-                        </Link>
-                    </h3>
+  return (
+    <article className="group flex flex-col bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:border-blue-500/50 dark:hover:border-blue-500/50 transition-all duration-300 relative">
+      
+      {/* Optimized Image Cover */}
+      <div className="relative h-48 w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
+        <Image
+          src={post.image}
+          alt={post.title}
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          className="object-cover group-hover:scale-105 transition-transform duration-500"
+        />
+        <span className="absolute top-3 left-3 bg-blue-600/90 text-white text-xs font-semibold px-2.5 py-1 rounded-full backdrop-blur-md">
+          {post.category}
+        </span>
 
-                    <p className="text-slate-600 dark:text-slate-400 text-sm line-clamp-3 mb-4">
-                        {post.excerpt}
-                    </p>
-                </div>
+        {/* 🌟 Wishlist Icon Button */}
+        <button
+          onClick={() => toggleWishlist(post.slug)}
+          aria-label="Save to wishlist"
+          className="absolute top-3 right-3 p-2 rounded-full bg-slate-900/60 hover:bg-slate-900/90 text-white backdrop-blur-md transition-all active:scale-95"
+        >
+          <Bookmark
+            className={`w-4 h-4 transition-colors ${
+              isBookmarked ? 'fill-blue-500 text-blue-500' : 'text-white'
+            }`}
+          />
+        </button>
+      </div>
 
-                <Link
-                    href={`/blog/${post.slug}`}
-                    className="inline-flex items-center gap-1 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:underline pt-2"
-                >
-                    Read Article <ArrowUpRight className="w-4 h-4" />
-                </Link>
-            </div>
+      {/* Content */}
+      <div className="flex-1 p-6 flex flex-col justify-between">
+        <div>
+          <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400 mb-3">
+            <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> {post.date}</span>
+            <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {post.readTime}</span>
+          </div>
 
-        </article>
-    );
+          <h3 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 mb-2">
+            <Link href={`/blog/${post.slug}`}>
+              {post.title}
+            </Link>
+          </h3>
+
+          <p className="text-slate-600 dark:text-slate-400 text-sm line-clamp-3 mb-4">
+            {post.excerpt}
+          </p>
+        </div>
+
+        <Link
+          href={`/blog/${post.slug}`}
+          className="inline-flex items-center gap-1 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:underline pt-2"
+        >
+          Read Article <ArrowUpRight className="w-4 h-4" />
+        </Link>
+      </div>
+
+    </article>
+  );
 }

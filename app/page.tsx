@@ -1,7 +1,9 @@
 import BlogCard, { Post } from '@/components/BlogCard';
 import FilterBar from '@/components/FilterBar';
+import BlogFeedList from '@/components/BlogFeedList';
 import { Sparkles, TrendingUp, SearchX } from 'lucide-react';
 import { Suspense } from 'react';
+
 
 const mockPosts: Post[] = [
   {
@@ -62,7 +64,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           <Sparkles className="w-3.5 h-3.5" /> Updated for Next.js 15
         </div>
         
-        <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-blue-600 dark:text-white ">
+        <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-blue-600 dark:text-white">
           Engineering Insights & <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-500">Frontend Craft</span>
         </h1>
       </section>
@@ -80,15 +82,10 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           <FilterBar />
         </Suspense>
 
-        {/* Posts Grid */}
+        {/* 🌟 Render Posts using View Toggle Component */}
         {filteredPosts.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredPosts.map((post) => (
-              <BlogCard key={post.slug} post={post} />
-            ))}
-          </div>
+          <BlogFeedList posts={filteredPosts} />
         ) : (
-          /* Empty State when no posts match search */
           <div className="text-center py-16 space-y-3 bg-slate-100/50 dark:bg-slate-900/50 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
             <SearchX className="w-10 h-10 text-slate-400 mx-auto" />
             <h3 className="text-lg font-bold text-slate-900 dark:text-white">No articles found</h3>
