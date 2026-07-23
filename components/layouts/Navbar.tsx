@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import { Terminal, Moon, Sun, Bookmark, Search, User, LogOut } from 'lucide-react';
+import { useRouter, usePathname } from 'next/navigation';
+import { Terminal, Moon, Sun, Bookmark, Search, User, LogOut, LayoutDashboard, Plus } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -16,8 +16,9 @@ export default function Navbar() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
 
-  // 🌟 Updated Auth Store Actions
+  // Auth & UI Stores
   const { user, clearAuth } = useAuthStore();
   const wishlistSlugs = useWishlistStore((state) => state.wishlistSlugs);
   const { toggleSearch } = useUIStore();
@@ -50,30 +51,64 @@ export default function Navbar() {
           <span>Dev<span className="text-blue-600 dark:text-blue-400">Pulse</span></span>
         </Link>
 
-        {/* Navigation Links */}
+        {/* Navigation Links (Updated for explicit page navigation) */}
         <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600 dark:text-slate-300">
-          <Link href="/" className="hover:text-blue-600 dark:hover:text-blue-400 transition">Home</Link>
-          <Link href="/#articles" className="hover:text-blue-600 dark:hover:text-blue-400 transition">Articles</Link>
-          <Link href="/create" className="text-sm font-medium px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition">
-            + New Article
+          <Link
+            href="/"
+            className={`hover:text-blue-600 dark:hover:text-blue-400 transition ${pathname === '/' ? 'text-blue-600 dark:text-blue-400 font-semibold' : ''
+              }`}
+          >
+            Home
+          </Link>
+
+          <Link
+            href="/articles"
+            className={`hover:text-blue-600 dark:hover:text-blue-400 transition ${pathname.startsWith('/articles') ? 'text-blue-600 dark:text-blue-400 font-semibold' : ''
+              }`}
+          >
+            Articles
+          </Link>
+
+          {user && (
+            <Link
+              href="/dashboard"
+              className={`hover:text-blue-600 dark:hover:text-blue-400 transition ${pathname.startsWith('/dashboard') ? 'text-blue-600 dark:text-blue-400 font-semibold' : ''
+                }`}
+            >
+              Dashboard
+            </Link>
+          )}
+
+          <Link href="/create" className="text-sm font-medium px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition flex items-center gap-1">
+            <Plus className="w-4 h-4" /> New Article
+          </Link>
+          <Link
+            href="/demo-form"
+            className="text-sm font-medium px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition flex items-center gap-1"
+          >
+            Form Engine Demo
           </Link>
         </nav>
 
+
+
         {/* Action Controls */}
         <div className="flex items-center gap-3">
-          
+
           {/* UI Store: Toggle Search */}
           <button
             onClick={toggleSearch}
             className="p-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition"
+            title="Search"
           >
             <Search className="w-4 h-4" />
           </button>
 
           {/* Wishlist Icon */}
           <Link
-            href="#"
+            href="/articles"
             className="relative p-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition"
+            title="Bookmarks"
           >
             <Bookmark className="w-4 h-4" />
             {wishlistCount > 0 && (
@@ -88,21 +123,23 @@ export default function Navbar() {
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               className="p-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition"
+              title="Toggle Theme"
             >
               {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
           )}
 
-          {/* 🌟 Updated Auth Display */}
+          {/* Auth State Control */}
           {mounted && user ? (
             <div className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-800">
-              <span className="text-xs font-semibold px-2 py-1 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400">
+              <Link href="/dashboard/profile" className="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 transition">
                 {user.email.split('@')[0]}
-              </span>
-              <button 
-                onClick={handleLogout} 
-                title="Logout" 
-                className="p-1 text-slate-500 hover:text-red-500 transition"
+              </Link>
+
+              <button
+                onClick={handleLogout}
+                title="Logout"
+                className="p-1.5 text-slate-500 hover:text-red-500 transition rounded-lg hover:bg-red-500/10"
               >
                 <LogOut className="w-4 h-4" />
               </button>

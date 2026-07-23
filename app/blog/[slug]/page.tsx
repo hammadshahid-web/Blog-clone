@@ -1,93 +1,94 @@
-import { Metadata } from 'next';
+'use client';
+
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
+import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import Link from 'next/link';
-import { ArrowLeft, Calendar, Clock, User, Share2 } from 'lucide-react';
+import { ArrowLeft, Clock, Calendar, Loader2 } from 'lucide-react';
 
-interface Props {
-  params: Promise<{ slug: string }>;
-}
+export default function BlogDetailPage() {
+  const { slug } = useParams();
+  const router = useRouter();
 
-// Generate Dynamic SEO Metadata
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
-  const formattedTitle = slug.replace(/-/g, ' ').toUpperCase();
+  const { data: blog, isLoading, isError } = useQuery({
+    queryKey: ['blog', slug],
+    queryFn: async () => {
+      const res = await axios.get(`/api/blogs/${slug}`);
+      return res.data;
+    },
+    enabled: !!slug,
+  });
 
-  return {
-    title: `${formattedTitle} // DevPulse Article`,
-    description: `Read our comprehensive guide on ${formattedTitle}.`,
-  };
-}
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-24">
+        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+      </div>
+    );
+  }
 
-export default async function ArticlePage({ params }: Props) {
-  const { slug } = await params;
+  if (isError || !blog) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-24 text-center">
+        <h2 className="text-2xl font-bold dark:text-white mb-4">Article Not Found</h2>
+        <button
+          onClick={() => router.back()}
+          className="inline-flex items-center gap-2 text-sm text-blue-500 hover:underline"
+        >
+          <ArrowLeft className="w-4 h-4" /> Go back
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <article className="max-w-3xl mx-auto space-y-8">
-      {/* Back Navigation */}
-      <Link
-        href="/"
-        className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 transition"
+    <article className="max-w-3xl mx-auto px-4 py-12 space-y-8">
+      {/* Back Button */}
+      <button
+        onClick={() => router.back()}
+        className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-blue-500 transition"
       >
-        <ArrowLeft className="w-4 h-4" /> Back to all articles
-      </Link>
+        <ArrowLeft className="w-4 h-4" /> Back to Articles
+      </button>
 
-      {/* Article Header */}
-      <header className="space-y-4">
-        <span className="bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 text-xs font-bold px-3 py-1 rounded-md">
-          Next.js
-        </span>
+      {/* Meta Header */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-500 border border-blue-500/20">
+            {blog.category || 'General'}
+          </span>
+          {blog.status === 'draft' && (
+            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-500 border border-amber-500/20">
+              Draft
+            </span>
+          )}
+        </div>
 
-        <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight">
-          {slug.replace(/-/g, ' ').toUpperCase()}
+        <h1 className="text-4xl font-extrabold text-slate-900 dark:text-white leading-tight">
+          {blog.title}
         </h1>
 
-        <div className="flex flex-wrap items-center justify-between text-sm text-slate-500 dark:text-slate-400 pt-2 border-y border-slate-200 dark:border-slate-800 py-3 gap-4">
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1.5 font-medium text-slate-900 dark:text-slate-200">
-              <User className="w-4 h-4 text-blue-600" /> Alex Rivera
-            </span>
-            <span className="flex items-center gap-1">
-              <Calendar className="w-4 h-4" /> Jul 20, 2026
-            </span>
-            <span className="flex items-center gap-1">
-              <Clock className="w-4 h-4" /> 6 min read
-            </span>
-          </div>
-
-          <button className="flex items-center gap-1 text-slate-500 hover:text-slate-900 dark:hover:text-white transition">
-            <Share2 className="w-4 h-4" /> Share
-          </button>
+        <div className="flex items-center gap-6 text-xs text-slate-500 dark:text-slate-400 pt-2 border-b border-slate-200 dark:border-slate-800 pb-6">
+          <span className="flex items-center gap-1.5">
+            <Calendar className="w-4 h-4" />
+            {new Date(blog.createdAt || Date.now()).toLocaleDateString()}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Clock className="w-4 h-4" /> 5 min read
+          </span>
         </div>
-      </header>
-
-      {/* Featured Cover Image */}
-      <div className="relative h-72 sm:h-96 w-full rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-md">
-        <Image
-          src="https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?w=1200&auto=format&fit=crop&q=80"
-          alt="Article Cover"
-          fill
-          priority
-          sizes="(max-width: 768px) 100vw, 768px"
-          className="object-cover"
-        />
       </div>
 
-      {/* Article Body Content */}
-      <div className="prose dark:prose-invert max-w-none space-y-6 text-slate-700 dark:text-slate-300 leading-relaxed text-lg">
-        <p className="text-xl font-medium text-slate-900 dark:text-slate-100">
-          The React ecosystem evolved rapidly in recent years. With the Next.js App Router, the boundaries between client and server code are seamlessly unified.
-        </p>
-
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-white pt-4">
-          Why Server Components Matter
-        </h2>
-        <p>
-          By default, every component inside the <code>app/</code> directory is a React Server Component. This means zero bytes of component JavaScript are shipped to the browser, significantly accelerating initial page loads.
-        </p>
-
-        <div className="p-4 rounded-xl border-l-4 border-blue-600 bg-blue-50 dark:bg-blue-950/40 text-blue-900 dark:text-blue-200 text-base">
-          <strong>Key Takeaway:</strong> Keep data-fetching on the server, and only opt into Client Components (<code>'use client'</code>) when you need interactivity like <code>useState</code> or DOM event listeners.
+      {/* Banner Cover Image */}
+      {blog.imageUrl && (
+        <div className="relative w-full h-[380px] rounded-2xl overflow-hidden bg-slate-900">
+          <Image src={blog.imageUrl} alt={blog.title} fill className="object-cover" priority />
         </div>
+      )}
+
+      {/* Content Area */}
+      <div className="prose dark:prose-invert max-w-none text-slate-800 dark:text-slate-200 leading-relaxed space-y-4">
+        {blog.content}
       </div>
     </article>
   );

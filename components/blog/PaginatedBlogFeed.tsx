@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { usePaginatedPosts } from '@/hooks/use-posts';
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
 import { useDeletePost } from '@/hooks/use-post-mutations';
 import BlogCard from '@/components/BlogCard';
 import { Loader2, AlertCircle, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
